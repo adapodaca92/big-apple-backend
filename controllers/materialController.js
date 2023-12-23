@@ -1,24 +1,16 @@
-const Material = require('../models/Material');
+const CombinedData = require('../models/CombinedData');
 
-// Define specific prices for different materials
-const PIPE_1_5_PRICE = 10; // Adjust this based on your actual price
-const PIPE_2_5_PRICE = 15; // Adjust this based on your actual price
-const ELBOW_PRICE = 5; // Adjust this based on your actual price
-const TEE_PRICE = 8; // Adjust this based on your actual price
-
-// Get all materials
 const getAllMaterials = async (req, res) => {
   try {
-    const materials = await Material.find();
+    const materials = await CombinedData.find({ 'material': { $exists: true } });
     res.json(materials);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Create a new material
 const createMaterial = async (req, res) => {
-  const { type, size, length, kind, quantity } = req.body;
+  const { type, size, length, kind, quantity } = req.body.material;
 
   // Calculate cost based on material type and size
   let materialCost;
@@ -36,18 +28,20 @@ const createMaterial = async (req, res) => {
     }
   }
 
-  const newMaterial = new Material({
-    type,
-    size,
-    length,
-    kind,
-    quantity,
-    price: materialCost,
+  const newEntry = new CombinedData({
+    material: {
+      type,
+      size,
+      length,
+      kind,
+      quantity,
+      price: materialCost,
+    },
   });
 
   try {
-    await newMaterial.save();
-    res.status(201).json(newMaterial);
+    await newEntry.save();
+    res.status(201).json(newEntry);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
